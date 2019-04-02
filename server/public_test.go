@@ -682,8 +682,7 @@ func socketioTests_BitcoinType(t *testing.T, ts *httptest.Server) {
 		{
 			name: "getInfo",
 			req:  socketioReq{"getInfo", []interface{}{}},
-			//want: `{"result":{"blocks":225494,"testnet":true,"network":"fakecoin","subversion":"/Fakecoin:0.0.1/","coin_name":"Fakecoin","about":"Blockbook - blockchain indexer for TREZOR wallet https://trezor.io/. Do not use for any other purpose."}}`,
-			want: `{"result":{"blocks":225494,"testnet":true,"network":"fakecoin","subversion":"/Fakecoin:0.0.1/","coin_name":"Fakecoin"}}`,
+			want: `{"result":{"blocks":225494,"testnet":true,"network":"fakecoin","subversion":"/Fakecoin:0.0.1/","coin_name":"Fakecoin","about":"Blockbook - https://x.scoop.tech indexer - with thx to https://trezor.io/"}}`,
 		},
 		{
 			name: "estimateFee",
