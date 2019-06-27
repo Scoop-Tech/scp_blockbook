@@ -26,6 +26,7 @@ import (
 	"blockbook/bchain/coins/polis"
 	"blockbook/bchain/coins/qtum"
 	"blockbook/bchain/coins/ravencoin"
+	"blockbook/bchain/coins/ritocoin"
 	"blockbook/bchain/coins/vertcoin"
 	"blockbook/bchain/coins/viacoin"
 	"blockbook/bchain/coins/vipstarcoin"
@@ -92,6 +93,7 @@ func init() {
 	BlockChainFactories["VIPSTARCOIN"] = vipstarcoin.NewVIPSTARCOINRPC
 	BlockChainFactories["ZelCash"] = zec.NewZCashRPC
 	BlockChainFactories["Ravencoin"] = ravencoin.NewRavencoinRPC
+	BlockChainFactories["Ritocoin"] = ritocoin.NewRitocoinRPC
 }
 
 // GetCoinNameFromConfig gets coin name and coin shortcut from config file
@@ -150,7 +152,7 @@ type blockChainWithMetrics struct {
 func (c *blockChainWithMetrics) observeRPCLatency(method string, start time.Time, err error) {
 	var e string
 	if err != nil {
-		e = err.Error()
+		e = "failure"
 	}
 	c.m.RPCLatency.With(common.Labels{"method": method, "error": e}).Observe(float64(time.Since(start)) / 1e6) // in milliseconds
 }
@@ -299,7 +301,7 @@ type mempoolWithMetrics struct {
 func (c *mempoolWithMetrics) observeRPCLatency(method string, start time.Time, err error) {
 	var e string
 	if err != nil {
-		e = err.Error()
+		e = "failure"
 	}
 	c.m.RPCLatency.With(common.Labels{"method": method, "error": e}).Observe(float64(time.Since(start)) / 1e6) // in milliseconds
 }
