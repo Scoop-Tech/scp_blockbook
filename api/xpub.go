@@ -13,7 +13,6 @@ import (
 	"github.com/juju/errors"
 )
 
-const xpubLen = 111
 const defaultAddressesGap = 20
 const maxAddressesGap = 10000
 
@@ -101,7 +100,7 @@ func (w *Worker) xpubGetAddressTxids(addrDesc bchain.AddressDescriptor, mempool 
 				l = len(txs)
 				callback(m.Txid, 0, []int32{m.Vout})
 				if len(txs) > l {
-					uniqueTxs[m.Txid] = l - 1
+					uniqueTxs[m.Txid] = l
 				}
 			} else {
 				if m.Vout < 0 {
@@ -271,7 +270,7 @@ func evictXpubCacheItems() {
 }
 
 func (w *Worker) getXpubData(xpub string, page int, txsOnPage int, option AccountDetails, filter *AddressFilter, gap int) (*xpubData, uint32, error) {
-	if w.chainType != bchain.ChainBitcoinType || len(xpub) != xpubLen {
+	if w.chainType != bchain.ChainBitcoinType {
 		return nil, 0, ErrUnsupportedXpub
 	}
 	var (

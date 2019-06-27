@@ -340,8 +340,8 @@ func (s *WebsocketServer) onRequest(c *websocketChannel, req *websocketReq) {
 		glog.V(1).Info("Client ", c.id, " onRequest ", req.Method, " success")
 		s.metrics.WebsocketRequests.With(common.Labels{"method": req.Method, "status": "success"}).Inc()
 	} else {
-		glog.Error("Client ", c.id, " onMessage ", req.Method, ": ", errors.ErrorStack(err))
-		s.metrics.WebsocketRequests.With(common.Labels{"method": req.Method, "status": err.Error()}).Inc()
+		glog.Error("Client ", c.id, " onMessage ", req.Method, ": ", errors.ErrorStack(err), ", data ", string(req.Params))
+		s.metrics.WebsocketRequests.With(common.Labels{"method": req.Method, "status": "failure"}).Inc()
 		e := resultError{}
 		e.Error.Message = err.Error()
 		data = e
@@ -357,6 +357,7 @@ type accountInfoReq struct {
 	FromHeight     int    `json:"from"`
 	ToHeight       int    `json:"to"`
 	ContractFilter string `json:"contractFilter"`
+	Gap            int    `json:"gap"`
 }
 
 func unmarshalGetAccountInfoRequest(params []byte) (*accountInfoReq, error) {
@@ -401,7 +402,7 @@ func (s *WebsocketServer) getAccountInfo(req *accountInfoReq) (res *api.Address,
 	if req.PageSize == 0 {
 		req.PageSize = txsOnPage
 	}
-	a, err := s.api.GetXpubAddress(req.Descriptor, req.Page, req.PageSize, opt, &filter, 0)
+	a, err := s.api.GetXpubAddress(req.Descriptor, req.Page, req.PageSize, opt, &filter, req.Gap)
 	if err != nil {
 		return s.api.GetAddress(req.Descriptor, req.Page, req.PageSize, opt, &filter)
 	}
