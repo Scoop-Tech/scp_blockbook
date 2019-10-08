@@ -7,7 +7,7 @@
     },
     "coinbase": "0x0000000000000000000000000000000000000000",
     "difficulty": "0x400",
-    "extraData": "AIRCARBON",
+    "extraData": "0xAC",
     "gasLimit": "10000000",
     "alloc": {
         "0xE3cadd6A998C762d827364280a7827cb1924C866": {
