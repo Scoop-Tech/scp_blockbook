@@ -29,8 +29,6 @@ For alloc, we need to create accounts before init'ing the new chain: https://git
     "eip155Block": 0,
     "eip158Block": 0
   },
-
-  "alloc"      : {},
   "coinbase"   : "0x0000000000000000000000000000000000000000",
   "difficulty" : "0x400",
   "extraData"  : "AIRCARBON",
