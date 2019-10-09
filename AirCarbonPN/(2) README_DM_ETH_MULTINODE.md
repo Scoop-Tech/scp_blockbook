@@ -9,11 +9,16 @@
 ```./geth --datadir ./data2 --networkid 42101 --port 30306 console --bootnodes enode://c9181a166bf931ef56bd580a82c94f551d65132b08eaa3425252bbe43fd71cab8e144b97fc6df04814f0d3dedc616b1d320040b71755e062858a02265254c265@127.0.0.1:30303```
 ```admin.peers```
 
-## node3 (BB) >> use ethereum_aircarbon.json template in scp-blockbook
+## node3 (BB) >> install (don't run yet!) ethereum_aircarbon.json template from scp-blockbook
 ```make all-ethereum_aircarbon```
 ```dpkg --remove backend-ethereum-ac.service```
-```apt install ./build/backend-ethereum-ac_1.9.6-bd059680-satoshilabs-1_amd64.deb```
->> TODO: manual init init.json... <<
+```rm -rf /opt/coins```
+```apt install ./build/backend-ethereum-ac_1.9.6-bd059680-satoshilabs-1_amd64.deb --reinstall```
+
+## node3 (BB) >> post-install: init w/ AC genesis file
+```cd /opt/coins/nodes/ethereum-ac/```
+```./geth --datadir /opt/coins/data/ethereum-ac/backend init init.json```
+
 
 
 ### bootnode -- red herring: spins up strict dev networks (default init.jsons) - not so useful
