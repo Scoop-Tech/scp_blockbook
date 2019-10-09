@@ -1,13 +1,16 @@
 # Multinode setup
 
-## restart node1, but specify a network id (why?)
+## node1 >> specify a network id (why?, it's in the init.json?!)
 ```./geth --datadir ./data1 console --etherbase '0xE3cadd6A998C762d827364280a7827cb1924C866' --mine --minerthreads=1 --networkid 42101```
 ```admin.nodeInfo``` - get enode value...
 
-## new console: init new node2 instane (new datadir, same init.json) - specify enode for peer discovery
+## node2 instance >> new console ... (new datadir, same init.json) - specify enode for peer discovery
 ```./geth --datadir ./data2 init init.json```
 ```./geth --datadir ./data2 --networkid 42101 --port 30306 console --bootnodes enode://c9181a166bf931ef56bd580a82c94f551d65132b08eaa3425252bbe43fd71cab8e144b97fc6df04814f0d3dedc616b1d320040b71755e062858a02265254c265@127.0.0.1:30303```
 ```admin.peers```
+
+## node3 (BB) >> use ethereum_aircarbon.json template in scp-blockbook
+...
 
 
 ### bootnode -- red herring: spins up strict dev networks (default init.jsons) - not so useful
