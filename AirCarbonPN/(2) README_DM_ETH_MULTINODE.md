@@ -10,7 +10,10 @@
 ```admin.peers```
 
 ## node3 (BB) >> use ethereum_aircarbon.json template in scp-blockbook
-...
+```make all-ethereum_aircarbon```
+```dpkg --remove backend-ethereum-ac.service```
+```apt install ./build/backend-ethereum-ac_1.9.6-bd059680-satoshilabs-1_amd64.deb```
+>> TODO: manual init init.json... <<
 
 
 ### bootnode -- red herring: spins up strict dev networks (default init.jsons) - not so useful
