@@ -20,7 +20,7 @@
   "backend": {
     "package_name": "backend-ethereum-ac",
     "package_revision": "satoshilabs-1",
-    "system_user": "ethereum-dm",
+    "system_user": "ethereum",
     "version": "1.9.6-bd059680",
     "binary_url": "https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1.9.6-bd059680.tar.gz",
     "verification_type": "gpg",
@@ -29,7 +29,7 @@
     "exclude_files": [],
     "exec_command_template": "/bin/sh -c '{{.Env.BackendInstallPath}}/{{.Coin.Alias}}/geth --syncmode full --rpc --rpcvhosts=\"*\" --wsorigins=\"*\" --rpcapi='eth,web3,txpool,net'  --ipcdisable --cache 1024 --nat none --datadir {{.Env.BackendDataPath}}/{{.Coin.Alias}}/backend --port 30309 --networkid 42101 --bootnodes enode://c9181a166bf931ef56bd580a82c94f551d65132b08eaa3425252bbe43fd71cab8e144b97fc6df04814f0d3dedc616b1d320040b71755e062858a02265254c265@127.0.0.1:30303 --ws --wsaddr 0.0.0.0 --wsport {{.Ports.BackendRPC}} --wsorigins \"*\" 2>>{{.Env.BackendDataPath}}/{{.Coin.Alias}}/backend/{{.Coin.Alias}}.log'",
     "logrotate_files_template": "{{.Env.BackendDataPath}}/{{.Coin.Alias}}/backend/{{.Coin.Alias}}.log",
-    "postinst_script_template": "wget https://raw.githubusercontent.com/Scoop-Tech/scp-blockbook/master/AirCarbonPN/init.json -O {{.Env.BackendInstallPath}}/{{.Coin.Alias}}/init.json",
+    "postinst_script_template": "",
     "service_type": "simple",
     "service_additional_params_template": "",
     "protect_memory": true,
@@ -39,7 +39,7 @@
   },
   "blockbook": {
     "package_name": "blockbook-ethereum-ac",
-    "system_user": "blockbook-ethereum-ac",
+    "system_user": "blockbook-ethereum",
     "internal_binding_template": ":{{.Ports.BlockbookInternal}}",
     "public_binding_template": ":{{.Ports.BlockbookPublic}}",
     "explorer_url": "",

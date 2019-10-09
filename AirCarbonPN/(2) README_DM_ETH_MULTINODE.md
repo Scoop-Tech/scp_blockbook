@@ -16,8 +16,8 @@
 ```apt install ./build/backend-ethereum-ac_1.9.6-bd059680-satoshilabs-1_amd64.deb --reinstall```
 
 ## node3 (BB) >> post-install: init w/ AC genesis file
-```cd /opt/coins/nodes/ethereum-ac/```
-```./geth --datadir /opt/coins/data/ethereum-ac/backend init init.json```
+>>> wget https://raw.githubusercontent.com/Scoop-Tech/scp-blockbook/master/AirCarbonPN/init.json -O {{.Env.BackendInstallPath}}/{{.Coin.Alias}}/init.json
+```/opt/coins/nodes/ethereum-ac//geth --datadir /opt/coins/data/ethereum-ac/backend init /opt/coins/nodes/ethereum-ac/init.json```
 
 
 
