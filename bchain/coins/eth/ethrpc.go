@@ -27,6 +27,12 @@ const (
 	MainNet EthereumNet = 1
 	// TestNet is Ropsten test network
 	TestNet EthereumNet = 3
+	
+	// AirCarbonTestNet is AirCarbon's private network dev testnet
+	AirCarbonTestNet EthereumNet = 42101
+
+	// AirCarbonMainNet is AirCarbon's private mainnet
+	AirCarbonMainNet EthereumNet = 42102
 )
 
 // Configuration represents json config file

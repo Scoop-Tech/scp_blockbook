@@ -11,25 +11,25 @@
 
 ## node3 (BB) >> install (don't run yet!) ethereum_aircarbon.json template from scp-blockbook
 ```make all-ethereum_aircarbon```
-```dpkg --remove backend-ethereum-ac.service```
+```dpkg --remove backend-ethereum-ac-testnet.service```
 ```rm -rf /opt/coins```
 ```apt install ./build/backend-ethereum-ac_1.9.6-bd059680-satoshilabs-1_amd64.deb --reinstall```
 
 ## node3 (BB) >> post-install: init w/ AC genesis file -- EXACT SAME FILE AS NODES 1 and 2 (don't use wget: different formatting resultings in different genesis hash!)...
-```rm /opt/coins/data/ethereum-ac/backend/* -rf```
-```/opt/coins/nodes/ethereum-ac/geth --datadir /opt/coins/data/ethereum-ac/backend init ~/geth/init.json```
+```rm /opt/coins/data/ethereum-ac-testnet/backend/* -rf```
+```/opt/coins/nodes/ethereum-ac-testnet/geth --datadir /opt/coins/data/ethereum-ac-testnet/backend init ~/geth/init.json```
 
 ## node3 (BB) >> modify systemctl unit file
-```systemctl cat backend-ethereum-ac.service```
+```systemctl cat backend-ethereum-ac-testnet.service```
 >>> COMMENT OUT User= line to have it run as root (default)!
 
 ## dbg (unit file cmdline)
-/opt/coins/nodes/ethereum-ac/geth --rpc --rpcvhosts="*" --wsorigins="*" --rpcapi='eth,web3,txpool,net' \
+/opt/coins/nodes/ethereum-ac-testnet/geth --rpc --rpcvhosts="*" --wsorigins="*" --rpcapi='eth,web3,txpool,net' \
   --ipcdisable --cache 1024 --nat none --datadir /opt/coins/data/ethereum-ac/backend --port 30309 \
   --networkid 42101 \
   --bootnodes enode://c9181a166bf931ef56bd580a82c94f551d65132b08eaa3425252bbe43fd71cab8e144b97fc6df04814f0d3dedc616b1d320040b71755e062858a02265254c265@127.0.0.1:30303 \
   --ws --wsaddr 0.0.0.0 --wsport 28036 --wsorigins "*"
-2>>/opt/coins/data/ethereum-ac/backend/ethereum-ac.log
+2>>/opt/coins/data/ethereum-ac-testnet/backend/ethereum-ac-testnet.log
 
 
 ### bootnode util -- red herring: spins up strict dev networks (default init.jsons) - not so useful
