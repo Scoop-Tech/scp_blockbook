@@ -160,16 +160,26 @@ func (b *EthereumRPC) Initialize() error {
 
 	// parameters for getInfo request
 	switch EthereumNet(id.Uint64()) {
-	case MainNet:
-		b.Testnet = false
-		b.Network = "livenet"
-		break
-	case TestNet:
-		b.Testnet = true
-		b.Network = "testnet"
-		break
-	default:
-		return errors.Errorf("Unknown network id %v", id)
+		case MainNet:
+			b.Testnet = false
+			b.Network = "livenet"
+			break
+		case TestNet:
+			b.Testnet = true
+			b.Network = "testnet"
+			break
+
+		case AirCarbonMainNet:
+			b.Testnet = false
+			b.Network = "livenet"
+			break
+		case AirCarbonTestNet:
+			b.Testnet = true
+			b.Network = "testnet"
+			break
+		
+		default:
+			return errors.Errorf("Unknown network id %v", id)
 	}
 	glog.Info("rpc: block chain ", b.Network)
 
