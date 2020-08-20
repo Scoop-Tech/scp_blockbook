@@ -1,62 +1,63 @@
 {
-  "coin": {
-    "name": "Ethereum_AirCarbon_MainNet",
-    "shortcut": "ETH_AC_MAINNET",
-    "label": "Ethereum-AC-Mainnet",
-    "alias": "ethereum-ac-mainnet"
-  },
-  "ports": {
-    "backend_rpc": 28036,
-    "backend_message_queue": 0,
-    "backend_p2p": 30309,
-    "backend_http": 28136,
-    "blockbook_internal": 29036,
-    "blockbook_public": 29136
-  },
-  "ipc": {
-    "rpc_url_template": "ws://127.0.0.1:{{.Ports.BackendRPC}}",
-    "rpc_timeout": 25
-  },
-  "backend": {
-    "package_name": "backend-ethereum-ac-mainnet",
-    "package_revision": "satoshilabs-1",
-    "system_user": "ethereum",
-    "version": "1.9.6-bd059680",
-    "binary_url": "https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1.9.6-bd059680.tar.gz",
-    "verification_type": "gpg",
-    "verification_source": "https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1.9.6-bd059680.tar.gz.asc",
-    "extract_command": "tar -C backend --strip 1 -xf",
-    "exclude_files": [],
-    "exec_command_template": "/bin/sh -c '{{.Env.BackendInstallPath}}/{{.Coin.Alias}}/geth --syncmode full --rpc --rpcvhosts=\"*\" --wsorigins=\"*\" --rpcapi='eth,web3,txpool,net'  --ipcdisable --cache 1024 --nat none --datadir {{.Env.BackendDataPath}}/{{.Coin.Alias}}/backend --port 30309 --networkid 42102 --bootnodes enode://c9181a166bf931ef56bd580a82c94f551d65132b08eaa3425252bbe43fd71cab8e144b97fc6df04814f0d3dedc616b1d320040b71755e062858a02265254c265@127.0.0.1:30303 --ws --wsaddr 0.0.0.0 --wsport {{.Ports.BackendRPC}} --wsorigins \"*\" 2>>{{.Env.BackendDataPath}}/{{.Coin.Alias}}/backend/{{.Coin.Alias}}.log'",
-    "logrotate_files_template": "{{.Env.BackendDataPath}}/{{.Coin.Alias}}/backend/{{.Coin.Alias}}.log",
-    "postinst_script_template": "",
-    "service_type": "simple",
-    "service_additional_params_template": "",
-    "protect_memory": true,
-    "mainnet": false,
-    "server_config_file": "",
-    "client_config_file": ""
-  },
-  "blockbook": {
-    "package_name": "blockbook-ethereum-ac-mainnet",
-    "system_user": "blockbook-ethereum",
-    "internal_binding_template": ":{{.Ports.BlockbookInternal}}",
-    "public_binding_template": ":{{.Ports.BlockbookPublic}}",
-    "explorer_url": "",
-    "additional_params": "",
-    "block_chain": {
-      "parse": true,
-      "mempool_workers": 8,
-      "mempool_sub_workers": 2,
-      "block_addresses_to_keep": 300,
-      "additional_params": {
-        "mempoolTxTimeoutHours": 48,
-        "queryBackendOnMempoolResync": false
+    "coin": {
+      "name": "Ethereum_AirCarbon_Mainnet",
+      "shortcut": "ETH_AC_MAINNET",
+      "label": "Ethereum-AC-Mainnet",
+      "alias": "ethereum-ac-mainnet"
+    },
+    "ports": {
+      "backend_rpc": 28036,
+      "backend_message_queue": 0,
+      "backend_p2p": 28336,
+      "backend_http": 28136,
+      "blockbook_internal": 29036,
+      "blockbook_public": 29136
+    },
+    "ipc": {
+      "rpc_url_template": "ws://127.0.0.1:{{.Ports.BackendRPC}}",
+      "rpc_timeout": 25
+    },
+    "backend": {
+      "package_name": "backend-ethereum-ac-mainnet",
+      "package_revision": "satoshilabs-1",
+      "system_user": "ethereum",
+      "version": "1.9.6-bd059680",
+      "binary_url": "https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1.9.6-bd059680.tar.gz",
+      "verification_type": "gpg",
+      "verification_source": "https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1.9.6-bd059680.tar.gz.asc",
+      "extract_command": "tar -C backend --strip 1 -xf",
+      "exclude_files": [],
+      "exec_command_template": "/bin/sh -c '/data2/{{.Coin.Alias}}/geth --syncmode full --rpc --rpcport 28545 --rpcvhosts=\"*\" --wsorigins=\"*\" --rpcapi='eth,web3,txpool,net'  --ipcdisable --cache 1024 --nat none --datadir /data2/{{.Coin.Alias}}/backend --port 28336 --networkid 42101 --bootnodes enode://12ecbe9c3bdcf702edcaee2ad779b486075b19daac4fd6bcd692c280c8783d90abb897214aeb49302d32eeb18d2719a80bbb0e209526682b699d445c6cd91f16@127.0.0.1:30303 --ws --wsaddr 0.0.0.0 --wsport {{.Ports.BackendRPC}} --wsorigins \"*\" 2>>/data2/{{.Coin.Alias}}/backend/{{.Coin.Alias}}.log'",
+      "logrotate_files_template": "/data2/{{.Coin.Alias}}/backend/{{.Coin.Alias}}.log",
+      "postinst_script_template": "",
+      "service_type": "simple",
+      "service_additional_params_template": "",
+      "protect_memory": true,
+      "mainnet": false,
+      "server_config_file": "",
+      "client_config_file": ""
+    },
+    "blockbook": {
+      "package_name": "blockbook-ethereum-ac-mainnet",
+      "system_user": "blockbook-ethereum",
+      "internal_binding_template": ":{{.Ports.BlockbookInternal}}",
+      "public_binding_template": ":{{.Ports.BlockbookPublic}}",
+      "explorer_url": "",
+      "additional_params": "",
+      "block_chain": {
+        "parse": true,
+        "mempool_workers": 8,
+        "mempool_sub_workers": 2,
+        "block_addresses_to_keep": 300,
+        "additional_params": {
+          "mempoolTxTimeoutHours": 48,
+          "queryBackendOnMempoolResync": false
+        }
       }
+    },
+    "meta": {
+      "package_maintainer": "DM",
+      "package_maintainer_email": "dom@aircarbon.co"
     }
-  },
-  "meta": {
-    "package_maintainer": "DM",
-    "package_maintainer_email": "dom@aircarbon.co"
   }
-}
+  
