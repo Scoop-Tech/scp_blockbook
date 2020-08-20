@@ -253,32 +253,7 @@ func (w *Worker) GetTransactionFromBchainTx(bchainTx *bchain.Tx, height int, spe
 		if err != nil {
 			glog.Errorf("GetErc20FromTx error %v, %v", err, bchainTx)
 		}
-		tokens = make([]TokenTransfer, len(ets))
-		for i := range ets {
-			e := &ets[i]
-			cd, err := w.chainParser.GetAddrDescFromAddress(e.Contract)
-			if err != nil {
-				glog.Errorf("GetAddrDescFromAddress error %v, contract %v", err, e.Contract)
-				continue
-			}
-			erc20c, err := w.chain.EthereumTypeGetErc20ContractInfo(cd)
-			if err != nil {
-				glog.Errorf("GetErc20ContractInfo error %v, contract %v", err, e.Contract)
-			}
-			if erc20c == nil {
-				erc20c = &bchain.Erc20Contract{Name: e.Contract}
-			}
-			tokens[i] = TokenTransfer{
-				Type:     ERC20TokenType,
-				Token:    e.Contract,
-				From:     e.From,
-				To:       e.To,
-				Decimals: erc20c.Decimals,
-				Value:    (*Amount)(&e.Tokens),
-				Name:     erc20c.Name,
-				Symbol:   erc20c.Symbol,
-			}
-		}
+		tokens = w.getTokensFromErc20(ets)
 		ethTxData := eth.GetEthereumTxData(bchainTx)
 		// mempool txs do not have fees yet
 		if ethTxData.GasUsed != nil {
@@ -330,6 +305,133 @@ func (w *Worker) GetTransactionFromBchainTx(bchainTx *bchain.Tx, height int, spe
 		EthereumSpecific: ethSpecific,
 	}
 	return r, nil
+}
+
+// GetTransactionFromMempoolTx converts bchain.MempoolTx to Tx, with limited amount of data
+// it is not doing any request to backend or to db
+func (w *Worker) GetTransactionFromMempoolTx(mempoolTx *bchain.MempoolTx) (*Tx, error) {
+	var err error
+	var valInSat, valOutSat, feesSat big.Int
+	var pValInSat *big.Int
+	var tokens []TokenTransfer
+	var ethSpecific *EthereumSpecific
+	vins := make([]Vin, len(mempoolTx.Vin))
+	rbf := false
+	for i := range mempoolTx.Vin {
+		bchainVin := &mempoolTx.Vin[i]
+		vin := &vins[i]
+		vin.Txid = bchainVin.Txid
+		vin.N = i
+		vin.Vout = bchainVin.Vout
+		vin.Sequence = int64(bchainVin.Sequence)
+		// detect explicit Replace-by-Fee transactions as defined by BIP125
+		if bchainVin.Sequence < 0xffffffff-1 {
+			rbf = true
+		}
+		vin.Hex = bchainVin.ScriptSig.Hex
+		vin.Coinbase = bchainVin.Coinbase
+		if w.chainType == bchain.ChainBitcoinType {
+			//  bchainVin.Txid=="" is coinbase transaction
+			if bchainVin.Txid != "" {
+				vin.ValueSat = (*Amount)(&bchainVin.ValueSat)
+				vin.AddrDesc = bchainVin.AddrDesc
+				vin.Addresses, vin.IsAddress, err = w.chainParser.GetAddressesFromAddrDesc(vin.AddrDesc)
+				if vin.ValueSat != nil {
+					valInSat.Add(&valInSat, (*big.Int)(vin.ValueSat))
+				}
+			}
+		} else if w.chainType == bchain.ChainEthereumType {
+			if len(bchainVin.Addresses) > 0 {
+				vin.AddrDesc, err = w.chainParser.GetAddrDescFromAddress(bchainVin.Addresses[0])
+				if err != nil {
+					glog.Errorf("GetAddrDescFromAddress error %v, tx %v, bchainVin %v", err, mempoolTx.Txid, bchainVin)
+				}
+				vin.Addresses = bchainVin.Addresses
+				vin.IsAddress = true
+			}
+		}
+	}
+	vouts := make([]Vout, len(mempoolTx.Vout))
+	for i := range mempoolTx.Vout {
+		bchainVout := &mempoolTx.Vout[i]
+		vout := &vouts[i]
+		vout.N = i
+		vout.ValueSat = (*Amount)(&bchainVout.ValueSat)
+		valOutSat.Add(&valOutSat, &bchainVout.ValueSat)
+		vout.Hex = bchainVout.ScriptPubKey.Hex
+		vout.AddrDesc, vout.Addresses, vout.IsAddress, err = w.getAddressesFromVout(bchainVout)
+		if err != nil {
+			glog.V(2).Infof("getAddressesFromVout error %v, %v, output %v", err, mempoolTx.Txid, bchainVout.N)
+		}
+	}
+	if w.chainType == bchain.ChainBitcoinType {
+		// for coinbase transactions valIn is 0
+		feesSat.Sub(&valInSat, &valOutSat)
+		if feesSat.Sign() == -1 {
+			feesSat.SetUint64(0)
+		}
+		pValInSat = &valInSat
+	} else if w.chainType == bchain.ChainEthereumType {
+		if len(mempoolTx.Vout) > 0 {
+			valOutSat = mempoolTx.Vout[0].ValueSat
+		}
+		tokens = w.getTokensFromErc20(mempoolTx.Erc20)
+		ethTxData := eth.GetEthereumTxDataFromSpecificData(mempoolTx.CoinSpecificData)
+		ethSpecific = &EthereumSpecific{
+			GasLimit: ethTxData.GasLimit,
+			GasPrice: (*Amount)(ethTxData.GasPrice),
+			GasUsed:  ethTxData.GasUsed,
+			Nonce:    ethTxData.Nonce,
+			Status:   ethTxData.Status,
+			Data:     ethTxData.Data,
+		}
+	}
+	r := &Tx{
+		Blocktime:        mempoolTx.Blocktime,
+		FeesSat:          (*Amount)(&feesSat),
+		Locktime:         mempoolTx.LockTime,
+		Txid:             mempoolTx.Txid,
+		ValueInSat:       (*Amount)(pValInSat),
+		ValueOutSat:      (*Amount)(&valOutSat),
+		Version:          mempoolTx.Version,
+		Hex:              mempoolTx.Hex,
+		Rbf:              rbf,
+		Vin:              vins,
+		Vout:             vouts,
+		TokenTransfers:   tokens,
+		EthereumSpecific: ethSpecific,
+	}
+	return r, nil
+}
+
+func (w *Worker) getTokensFromErc20(erc20 []bchain.Erc20Transfer) []TokenTransfer {
+	tokens := make([]TokenTransfer, len(erc20))
+	for i := range erc20 {
+		e := &erc20[i]
+		cd, err := w.chainParser.GetAddrDescFromAddress(e.Contract)
+		if err != nil {
+			glog.Errorf("GetAddrDescFromAddress error %v, contract %v", err, e.Contract)
+			continue
+		}
+		erc20c, err := w.chain.EthereumTypeGetErc20ContractInfo(cd)
+		if err != nil {
+			glog.Errorf("GetErc20ContractInfo error %v, contract %v", err, e.Contract)
+		}
+		if erc20c == nil {
+			erc20c = &bchain.Erc20Contract{Name: e.Contract}
+		}
+		tokens[i] = TokenTransfer{
+			Type:     ERC20TokenType,
+			Token:    e.Contract,
+			From:     e.From,
+			To:       e.To,
+			Decimals: erc20c.Decimals,
+			Value:    (*Amount)(&e.Tokens),
+			Name:     erc20c.Name,
+			Symbol:   erc20c.Symbol,
+		}
+	}
+	return tokens
 }
 
 func (w *Worker) getAddressTxids(addrDesc bchain.AddressDescriptor, mempool bool, filter *AddressFilter, maxResults int) ([]string, error) {
@@ -401,10 +503,16 @@ func (t *Tx) getAddrVoutValue(addrDesc bchain.AddressDescriptor) *big.Int {
 	}
 	return &val
 }
-func (t *Tx) getAddrEthereumTypeInputValue(addrDesc bchain.AddressDescriptor) *big.Int {
+func (t *Tx) getAddrEthereumTypeMempoolInputValue(addrDesc bchain.AddressDescriptor) *big.Int {
 	var val big.Int
 	if len(t.Vin) > 0 && len(t.Vout) > 0 && bytes.Equal(t.Vin[0].AddrDesc, addrDesc) {
 		val.Add(&val, (*big.Int)(t.Vout[0].ValueSat))
+		// add maximum possible fee (the used value is not yet known)
+		if t.EthereumSpecific != nil && t.EthereumSpecific.GasLimit != nil && t.EthereumSpecific.GasPrice != nil {
+			var fees big.Int
+			fees.Mul((*big.Int)(t.EthereumSpecific.GasPrice), t.EthereumSpecific.GasLimit)
+			val.Add(&val, &fees)
+		}
 	}
 	return &val
 }
@@ -767,9 +875,9 @@ func (w *Worker) GetAddress(address string, page int, txsOnPage int, option Acco
 				if tx.Confirmations == 0 {
 					unconfirmedTxs++
 					uBalSat.Add(&uBalSat, tx.getAddrVoutValue(addrDesc))
-					// for ethereum take the value from vout, vin is always empty
+					// ethereum has a different logic - value not in input and add maximum possible fees
 					if w.chainType == bchain.ChainEthereumType {
-						uBalSat.Sub(&uBalSat, tx.getAddrEthereumTypeInputValue(addrDesc))
+						uBalSat.Sub(&uBalSat, tx.getAddrEthereumTypeMempoolInputValue(addrDesc))
 					} else {
 						uBalSat.Sub(&uBalSat, tx.getAddrVinValue(addrDesc))
 					}
@@ -929,8 +1037,8 @@ func (w *Worker) balanceHistoryForTxid(addrDesc bchain.AddressDescriptor, txid s
 	} else if w.chainType == bchain.ChainEthereumType {
 		var value big.Int
 		ethTxData := eth.GetEthereumTxData(bchainTx)
-		// add received amount only for OK transactions
-		if ethTxData.Status == 1 {
+		// add received amount only for OK or unknown status (old) transactions
+		if ethTxData.Status == eth.TxStatusOK || ethTxData.Status == eth.TxStatusUnknown {
 			if len(bchainTx.Vout) > 0 {
 				bchainVout := &bchainTx.Vout[0]
 				value = bchainVout.ValueSat
@@ -956,8 +1064,8 @@ func (w *Worker) balanceHistoryForTxid(addrDesc bchain.AddressDescriptor, txid s
 					return nil, err
 				}
 				if bytes.Equal(addrDesc, txAddrDesc) {
-					// add sent amount only for OK transactions, however fees always
-					if ethTxData.Status == 1 {
+					// add received amount only for OK or unknown status (old) transactions, fees always
+					if ethTxData.Status == eth.TxStatusOK || ethTxData.Status == eth.TxStatusUnknown {
 						(*big.Int)(bh.SentSat).Add((*big.Int)(bh.SentSat), &value)
 						if countSentToSelf {
 							if _, found := selfAddrDesc[string(txAddrDesc)]; found {
