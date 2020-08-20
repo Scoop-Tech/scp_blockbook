@@ -27,7 +27,7 @@
       "verification_source": "https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1.9.6-bd059680.tar.gz.asc",
       "extract_command": "tar -C backend --strip 1 -xf",
       "exclude_files": [],
-      "exec_command_template": "/bin/sh -c '/data2/{{.Coin.Alias}}/geth --syncmode full --rpc --rpcport 28545 --rpcvhosts=\"*\" --wsorigins=\"*\" --rpcapi='eth,web3,txpool,net'  --ipcdisable --cache 1024 --nat none --datadir /data2/{{.Coin.Alias}}/backend --port 28336 --networkid 42101 --bootnodes enode://12ecbe9c3bdcf702edcaee2ad779b486075b19daac4fd6bcd692c280c8783d90abb897214aeb49302d32eeb18d2719a80bbb0e209526682b699d445c6cd91f16@127.0.0.1:30303 --ws --wsaddr 0.0.0.0 --wsport {{.Ports.BackendRPC}} --wsorigins \"*\" 2>>/data2/{{.Coin.Alias}}/backend/{{.Coin.Alias}}.log'",
+      "exec_command_template": "/bin/sh -c '/data2/{{.Coin.Alias}}/geth --syncmode full --rpc --rpcport 28545 --rpcvhosts=\"*\" --wsorigins=\"*\" --rpcapi='eth,web3,txpool,net'  --ipcdisable --cache 1024 --nat none --datadir /data2/{{.Coin.Alias}}/backend --port 28336 --networkid 52101 --bootnodes enode://12ecbe9c3bdcf702edcaee2ad779b486075b19daac4fd6bcd692c280c8783d90abb897214aeb49302d32eeb18d2719a80bbb0e209526682b699d445c6cd91f16@127.0.0.1:30303 --ws --wsaddr 0.0.0.0 --wsport {{.Ports.BackendRPC}} --wsorigins \"*\" 2>>/data2/{{.Coin.Alias}}/backend/{{.Coin.Alias}}.log'",
       "logrotate_files_template": "/data2/{{.Coin.Alias}}/backend/{{.Coin.Alias}}.log",
       "postinst_script_template": "",
       "service_type": "simple",
