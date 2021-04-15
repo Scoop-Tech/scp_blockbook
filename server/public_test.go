@@ -109,7 +109,7 @@ func setupPublicHTTPServer(t *testing.T) (*PublicServer, string) {
 	}
 
 	// s.Run is never called, binding can be to any port
-	s, err := NewPublicServer("localhost:12345", "", d, chain, mempool, txCache, "", metrics, is, false)
+	s, err := NewPublicServer("localhost:12345", "", d, chain, mempool, txCache, "", metrics, is, false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1044,7 +1044,7 @@ func websocketTestsBitcoinType(t *testing.T, ts *httptest.Server) {
 			req: websocketReq{
 				Method: "getInfo",
 			},
-			want: `{"id":"0","data":{"name":"Fakecoin","shortcut":"FAKE","decimals":8,"version":"unknown","bestHeight":225494,"bestHash":"00000000eb0443fd7dc4a1ed5c686a8e995057805f9a161d9a5a77a95e72b7b6","block0Hash":"","testnet":true}}`,
+			want: `{"id":"0","data":{"name":"Fakecoin","shortcut":"FAKE","decimals":8,"version":"unknown","bestHeight":225494,"bestHash":"00000000eb0443fd7dc4a1ed5c686a8e995057805f9a161d9a5a77a95e72b7b6","block0Hash":"","testnet":true,"backend":{"version":"001001","subversion":"/Fakecoin:0.0.1/"}}}`,
 		},
 		{
 			name: "websocket getBlockHash",
@@ -1420,6 +1420,20 @@ func websocketTestsBitcoinType(t *testing.T, ts *httptest.Server) {
 				},
 			},
 			want: `{"id":"36","data":[{"time":1521514800,"txs":1,"received":"1","sent":"0","sentToSelf":"0","rates":{"eur":1301,"usd":2001}}]}`,
+		},
+		{
+			name: "websocket subscribeNewTransaction",
+			req: websocketReq{
+				Method: "subscribeNewTransaction",
+			},
+			want: `{"id":"37","data":{"subscribed":false,"message":"subscribeNewTransaction not enabled, use -enablesubnewtx flag to enable."}}`,
+		},
+		{
+			name: "websocket unsubscribeNewTransaction",
+			req: websocketReq{
+				Method: "unsubscribeNewTransaction",
+			},
+			want: `{"id":"38","data":{"subscribed":false,"message":"unsubscribeNewTransaction not enabled, use -enablesubnewtx flag to enable."}}`,
 		},
 	}
 
