@@ -29,12 +29,8 @@ const (
 	MainNet EthereumNet = 1
 	// TestNet is Ropsten test network
 	TestNet EthereumNet = 3
-	
-	// AirCarbonTestNet is AirCarbon's private network dev testnet
-	AirCarbonTestNet EthereumNet = 42101
-
-	// AirCarbonMainNet is AirCarbon's private mainnet
-	AirCarbonMainNet EthereumNet = 42102
+	// TestNetGoerli is Goerli test network
+	TestNetGoerli EthereumNet = 5
 )
 
 // Configuration represents json config file
@@ -158,6 +154,7 @@ func (b *EthereumRPC) Initialize() error {
 
 	// parameters for getInfo request
 	switch EthereumNet(id.Uint64()) {
+<<<<<<< HEAD
 		case MainNet:
 			b.Testnet = false
 			b.Network = "livenet"
@@ -178,6 +175,21 @@ func (b *EthereumRPC) Initialize() error {
 		
 		default:
 			return errors.Errorf("Unknown network id %v", id)
+=======
+	case MainNet:
+		b.Testnet = false
+		b.Network = "livenet"
+		break
+	case TestNet:
+		b.Testnet = true
+		b.Network = "testnet"
+		break
+	case TestNetGoerli:
+		b.Testnet = true
+		b.Network = "goerli"
+	default:
+		return errors.Errorf("Unknown network id %v", id)
+>>>>>>> 1f6cddd4abaae586f5f1f1b7b6841a056b9fc79c
 	}
 	glog.Info("rpc: block chain ", b.Network)
 
@@ -351,19 +363,15 @@ func (b *EthereumRPC) GetChainInfo() (*bchain.ChainInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	var ver, protocol string
+	var ver string
 	if err := b.rpc.CallContext(ctx, &ver, "web3_clientVersion"); err != nil {
 		return nil, err
 	}
-	if err := b.rpc.CallContext(ctx, &protocol, "eth_protocolVersion"); err != nil {
-		return nil, err
-	}
 	rv := &bchain.ChainInfo{
-		Blocks:          int(h.Number.Int64()),
-		Bestblockhash:   h.Hash().Hex(),
-		Difficulty:      h.Difficulty.String(),
-		Version:         ver,
-		ProtocolVersion: protocol,
+		Blocks:        int(h.Number.Int64()),
+		Bestblockhash: h.Hash().Hex(),
+		Difficulty:    h.Difficulty.String(),
+		Version:       ver,
 	}
 	idi := int(id.Uint64())
 	if idi == 1 {
