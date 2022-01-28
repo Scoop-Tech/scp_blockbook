@@ -26,7 +26,7 @@
     "verification_source": "https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1.10.15-8be800ff.tar.gz.asc",
     "extract_command": "tar -C backend --strip 1 -xf",
     "exclude_files": [],
-    "exec_command_template": "/bin/sh -c '{{.Env.BackendInstallPath}}/{{.Coin.Alias}}/geth --ropsten --syncmode full --txlookuplimit 0 --ipcdisable --cache 1024 --nat none --datadir {{.Env.BackendDataPath}}/{{.Coin.Alias}}/backend --port 48336 --ws --ws.addr 0.0.0.0   --ws.port {{.Ports.BackendRPC}} --ws.origins \"*\" --rpc --http.vhosts=\"*\" --graphql.vhosts=\"*\" --ws.origins=\"*\" --http.api='eth,web3,txpool,net' --ws.api='eth,web3,txpool,net' 2>>{{.Env.BackendDataPath}}/{{.Coin.Alias}}/backend/{{.Coin.Alias}}.log'",
+    "exec_command_template": "/bin/sh -c '{{.Env.BackendInstallPath}}/{{.Coin.Alias}}/geth --ropsten --syncmode full --txlookuplimit 0 --ipcdisable --cache 1024 --nat none --datadir {{.Env.BackendDataPath}}/{{.Coin.Alias}}/backend --port 48336 --ws --ws.addr 0.0.0.0   --ws.port {{.Ports.BackendRPC}} --ws.origins \"*\" --http.vhosts=\"*\" --graphql.vhosts=\"*\" --ws.origins=\"*\" --http.api='eth,web3,txpool,net' --ws.api='eth,web3,txpool,net' 2>>{{.Env.BackendDataPath}}/{{.Coin.Alias}}/backend/{{.Coin.Alias}}.log'",
     "logrotate_files_template": "{{.Env.BackendDataPath}}/{{.Coin.Alias}}/backend/{{.Coin.Alias}}.log",
     "postinst_script_template": "",
     "service_type": "simple",
