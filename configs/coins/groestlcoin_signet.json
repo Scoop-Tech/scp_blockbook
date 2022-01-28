@@ -1,15 +1,15 @@
 {
   "coin": {
-    "name": "Signet",
-    "shortcut": "sBTC",
-    "label": "Bitcoin Signet",
-    "alias": "bitcoin_signet"
+    "name": "Groestlcoin Signet",
+    "shortcut": "sGRS",
+    "label": "Groestlcoin Signet",
+    "alias": "groestlcoin_signet"
   },
   "ports": {
-    "backend_rpc": 18020,
-    "backend_message_queue": 48320,
-    "blockbook_internal": 19020,
-    "blockbook_public": 19120
+    "backend_rpc": 18047,
+    "backend_message_queue": 48347,
+    "blockbook_internal": 19047,
+    "blockbook_public": 19147
   },
   "ipc": {
     "rpc_url_template": "http://127.0.0.1:{{.Ports.BackendRPC}}",
@@ -19,18 +19,18 @@
     "message_queue_binding_template": "tcp://127.0.0.1:{{.Ports.BackendMessageQueue}}"
   },
   "backend": {
-    "package_name": "backend-bitcoin-signet",
+    "package_name": "backend-groestlcoin-signet",
     "package_revision": "satoshilabs-1",
-    "system_user": "bitcoin",
+    "system_user": "groestlcoin",
     "version": "22.0",
-    "binary_url": "https://bitcoincore.org/bin/bitcoin-core-22.0/bitcoin-22.0-x86_64-linux-gnu.tar.gz",
+    "binary_url": "https://github.com/Groestlcoin/groestlcoin/releases/download/v22.0/groestlcoin-22.0-x86_64-linux-gnu.tar.gz",
     "verification_type": "sha256",
-    "verification_source": "59ebd25dd82a51638b7a6bb914586201e67db67b919b2a1ff08925a7936d1b16",
+    "verification_source": "b30c5353dd3d9cfd7e8b31f29eac125925751165f690bacff57effd76560dddd",
     "extract_command": "tar -C backend --strip 1 -xf",
     "exclude_files": [
-      "bin/bitcoin-qt"
+      "bin/groestlcoin-qt"
     ],
-    "exec_command_template": "{{.Env.BackendInstallPath}}/{{.Coin.Alias}}/bin/bitcoind -datadir={{.Env.BackendDataPath}}/{{.Coin.Alias}}/backend -conf={{.Env.BackendInstallPath}}/{{.Coin.Alias}}/{{.Coin.Alias}}.conf -pid=/run/{{.Coin.Alias}}/{{.Coin.Alias}}.pid",
+    "exec_command_template": "{{.Env.BackendInstallPath}}/{{.Coin.Alias}}/bin/groestlcoind -datadir={{.Env.BackendDataPath}}/{{.Coin.Alias}}/backend -conf={{.Env.BackendInstallPath}}/{{.Coin.Alias}}/{{.Coin.Alias}}.conf -pid=/run/{{.Coin.Alias}}/{{.Coin.Alias}}.pid",
     "logrotate_files_template": "{{.Env.BackendDataPath}}/{{.Coin.Alias}}/backend/signet/*.log",
     "postinst_script_template": "",
     "service_type": "forking",
@@ -40,12 +40,13 @@
     "server_config_file": "bitcoin-signet.conf",
     "client_config_file": "bitcoin_client.conf",
     "additional_params": {
-      "deprecatedrpc": "estimatefee"
+      "deprecatedrpc": "estimatefee",
+      "whitelist": "127.0.0.1"
     }
   },
   "blockbook": {
-    "package_name": "blockbook-bitcoin-signet",
-    "system_user": "blockbook-bitcoin",
+    "package_name": "blockbook-groestlcoin-signet",
+    "system_user": "blockbook-groestlcoin",
     "internal_binding_template": ":{{.Ports.BlockbookInternal}}",
     "public_binding_template": ":{{.Ports.BlockbookPublic}}",
     "explorer_url": "",
@@ -59,11 +60,14 @@
       "xpub_magic_segwit_p2sh": 71979618,
       "xpub_magic_segwit_native": 73342198,
       "slip44": 1,
-      "additional_params": {}
+      "additional_params": {
+        "fiat_rates": "coingecko",
+        "fiat_rates_params": "{\"url\": \"https://api.coingecko.com/api/v3\", \"coin\": \"groestlcoin\", \"periodSeconds\": 60}"
+      }
     }
   },
   "meta": {
-    "package_maintainer": "wakiyamap",
-    "package_maintainer_email": "wakiyamap@gmail.com"
+    "package_maintainer": "Groestlcoin Development Team",
+    "package_maintainer_email": "jackie@groestlcoin.org"
   }
 }

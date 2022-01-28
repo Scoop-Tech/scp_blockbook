@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"math/big"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"reflect"
 	"regexp"
@@ -189,6 +190,7 @@ func (s *PublicServer) ConnectFullPublicInterface() {
 	serveMux.HandleFunc(path+"api/v2/feestats/", s.jsonHandler(s.apiFeeStats, apiV2))
 	serveMux.HandleFunc(path+"api/v2/balancehistory/", s.jsonHandler(s.apiBalanceHistory, apiDefault))
 	serveMux.HandleFunc(path+"api/v2/tickers/", s.jsonHandler(s.apiTickers, apiV2))
+	serveMux.HandleFunc(path+"api/v2/multi-tickers/", s.jsonHandler(s.apiMultiTickers, apiV2))
 	serveMux.HandleFunc(path+"api/v2/tickers-list/", s.jsonHandler(s.apiTickersList, apiV2))
 	// socket.io interface
 	serveMux.Handle(path+"socket.io/", s.socketio.GetHandler())
@@ -711,9 +713,9 @@ func (s *PublicServer) explorerAddress(w http.ResponseWriter, r *http.Request) (
 
 func (s *PublicServer) explorerXpub(w http.ResponseWriter, r *http.Request) (tpl, *TemplateData, error) {
 	var xpub string
-	i := strings.LastIndexByte(r.URL.Path, '/')
+	i := strings.LastIndex(r.URL.Path, "xpub/")
 	if i > 0 {
-		xpub = r.URL.Path[i+1:]
+		xpub = r.URL.Path[i+5:]
 	}
 	if len(xpub) == 0 {
 		return errorTpl, nil, api.NewAPIError("Missing xpub", true)
@@ -804,7 +806,7 @@ func (s *PublicServer) explorerSearch(w http.ResponseWriter, r *http.Request) (t
 	if len(q) > 0 {
 		address, err = s.api.GetXpubAddress(q, 0, 1, api.AccountDetailsBasic, &api.AddressFilter{Vout: api.AddressFilterVoutOff}, 0)
 		if err == nil {
-			http.Redirect(w, r, joinURL("/xpub/", address.AddrStr), 302)
+			http.Redirect(w, r, joinURL("/xpub/", url.QueryEscape(address.AddrStr)), 302)
 			return noTpl, nil, nil
 		}
 		block, err = s.api.GetBlock(q, 0, 1)
@@ -1024,9 +1026,9 @@ func (s *PublicServer) apiAddress(r *http.Request, apiVersion int) (interface{},
 
 func (s *PublicServer) apiXpub(r *http.Request, apiVersion int) (interface{}, error) {
 	var xpub string
-	i := strings.LastIndexByte(r.URL.Path, '/')
+	i := strings.LastIndex(r.URL.Path, "xpub/")
 	if i > 0 {
-		xpub = r.URL.Path[i+1:]
+		xpub = r.URL.Path[i+5:]
 	}
 	if len(xpub) == 0 {
 		return nil, api.NewAPIError("Missing xpub", true)
@@ -1209,7 +1211,7 @@ func (s *PublicServer) apiTickers(r *http.Request, apiVersion int) (interface{},
 
 		timestamp, err := strconv.ParseInt(timestampString, 10, 64)
 		if err != nil {
-			return nil, api.NewAPIError("Parameter \"timestamp\" is not a valid Unix timestamp.", true)
+			return nil, api.NewAPIError("Parameter 'timestamp' is not a valid Unix timestamp.", true)
 		}
 
 		resultTickers, err := s.api.GetFiatRatesForTimestamps([]int64{timestamp}, currencies)
@@ -1224,6 +1226,38 @@ func (s *PublicServer) apiTickers(r *http.Request, apiVersion int) (interface{},
 	}
 	if err != nil {
 		return nil, err
+	}
+	return result, nil
+}
+
+// apiMultiTickers returns FiatRates ticker prices for the specified comma separated list of timestamps.
+func (s *PublicServer) apiMultiTickers(r *http.Request, apiVersion int) (interface{}, error) {
+	var result []db.ResultTickerAsString
+	var err error
+
+	currency := strings.ToLower(r.URL.Query().Get("currency"))
+	var currencies []string
+	if currency != "" {
+		currencies = []string{currency}
+	}
+	if timestampString := r.URL.Query().Get("timestamp"); timestampString != "" {
+		// Get tickers for specified timestamp
+		s.metrics.ExplorerViews.With(common.Labels{"action": "api-multi-tickers-date"}).Inc()
+		timestamps := strings.Split(timestampString, ",")
+		t := make([]int64, len(timestamps))
+		for i := range timestamps {
+			t[i], err = strconv.ParseInt(timestamps[i], 10, 64)
+			if err != nil {
+				return nil, api.NewAPIError("Parameter 'timestamp' does not contain a valid Unix timestamp.", true)
+			}
+		}
+		resultTickers, err := s.api.GetFiatRatesForTimestamps(t, currencies)
+		if err != nil {
+			return nil, err
+		}
+		result = resultTickers.Tickers
+	} else {
+		return nil, api.NewAPIError("Parameter 'timestamp' is missing.", true)
 	}
 	return result, nil
 }
