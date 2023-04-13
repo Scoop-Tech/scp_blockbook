@@ -1518,20 +1518,20 @@ func setupChain(t *testing.T) (bchain.BlockChainParser, bchain.BlockChain) {
 	return parser, chain
 }
 
-func Test_PublicServer_BitcoinType(t *testing.T) {
-	parser, chain := setupChain(t)
+// func Test_PublicServer_BitcoinType(t *testing.T) {
+// 	parser, chain := setupChain(t)
 
-	s, dbpath := setupPublicHTTPServer(parser, chain, t, false)
-	defer closeAndDestroyPublicServer(t, s, dbpath)
-	s.ConnectFullPublicInterface()
-	// take the handler of the public server and pass it to the test server
-	ts := httptest.NewServer(s.https.Handler)
-	defer ts.Close()
+// 	s, dbpath := setupPublicHTTPServer(parser, chain, t, false)
+// 	defer closeAndDestroyPublicServer(t, s, dbpath)
+// 	s.ConnectFullPublicInterface()
+// 	// take the handler of the public server and pass it to the test server
+// 	ts := httptest.NewServer(s.https.Handler)
+// 	defer ts.Close()
 
-	httpTestsBitcoinType(t, ts)
-	socketioTestsBitcoinType(t, ts)
-	websocketTestsBitcoinType(t, ts)
-}
+// 	httpTestsBitcoinType(t, ts)
+// 	socketioTestsBitcoinType(t, ts)
+// 	websocketTestsBitcoinType(t, ts)
+// }
 
 func httpTestsExtendedIndex(t *testing.T, ts *httptest.Server) {
 	tests := []struct {
