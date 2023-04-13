@@ -43,6 +43,7 @@ type Configuration struct {
 	RPCUser                      string `json:"rpc_user"`
 	RPCPass                      string `json:"rpc_pass"`
 	RPCTimeout                   int    `json:"rpc_timeout"`
+	AddressAliases               bool   `json:"address_aliases,omitempty"`
 	Parse                        bool   `json:"parse"`
 	MessageQueueBinding          string `json:"message_queue_binding"`
 	Subversion                   string `json:"subversion"`
@@ -551,7 +552,7 @@ func (b *BitcoinRPC) GetBlock(hash string, height uint32) (*bchain.Block, error)
 	if err != nil {
 		return nil, err
 	}
-	data, err := b.GetBlockRaw(hash)
+	data, err := b.GetBlockBytes(hash)
 	if err != nil {
 		return nil, err
 	}
@@ -588,7 +589,7 @@ func (b *BitcoinRPC) GetBlockInfo(hash string) (*bchain.BlockInfo, error) {
 // GetBlockWithoutHeader is an optimization - it does not call GetBlockHeader to get prev, next hashes
 // instead it sets to header only block hash and height passed in parameters
 func (b *BitcoinRPC) GetBlockWithoutHeader(hash string, height uint32) (*bchain.Block, error) {
-	data, err := b.GetBlockRaw(hash)
+	data, err := b.GetBlockBytes(hash)
 	if err != nil {
 		return nil, err
 	}
@@ -601,8 +602,8 @@ func (b *BitcoinRPC) GetBlockWithoutHeader(hash string, height uint32) (*bchain.
 	return block, nil
 }
 
-// GetBlockRaw returns block with given hash as bytes
-func (b *BitcoinRPC) GetBlockRaw(hash string) ([]byte, error) {
+// GetBlockRaw returns block with given hash as hex string
+func (b *BitcoinRPC) GetBlockRaw(hash string) (string, error) {
 	glog.V(1).Info("rpc: getblock (verbosity=0) ", hash)
 
 	res := ResGetBlockRaw{}
@@ -612,15 +613,24 @@ func (b *BitcoinRPC) GetBlockRaw(hash string) ([]byte, error) {
 	err := b.Call(&req, &res)
 
 	if err != nil {
-		return nil, errors.Annotatef(err, "hash %v", hash)
+		return "", errors.Annotatef(err, "hash %v", hash)
 	}
 	if res.Error != nil {
 		if IsErrBlockNotFound(res.Error) {
-			return nil, bchain.ErrBlockNotFound
+			return "", bchain.ErrBlockNotFound
 		}
-		return nil, errors.Annotatef(res.Error, "hash %v", hash)
+		return "", errors.Annotatef(res.Error, "hash %v", hash)
 	}
-	return hex.DecodeString(res.Result)
+	return res.Result, nil
+}
+
+// GetBlockBytes returns block with given hash as bytes
+func (b *BitcoinRPC) GetBlockBytes(hash string) ([]byte, error) {
+	block, err := b.GetBlockRaw(hash)
+	if err != nil {
+		return nil, err
+	}
+	return hex.DecodeString(block)
 }
 
 // GetBlockFull returns block with given hash
@@ -719,10 +729,10 @@ func (b *BitcoinRPC) GetTransaction(txid string) (*bchain.Tx, error) {
 		return nil, err
 	}
 	tx, err := b.Parser.ParseTxFromJson(r)
-	tx.CoinSpecificData = r
 	if err != nil {
 		return nil, errors.Annotatef(err, "txid %v", txid)
 	}
+	tx.CoinSpecificData = r
 	return tx, nil
 }
 
